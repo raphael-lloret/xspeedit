@@ -29,7 +29,7 @@ public class XspeedItTest {
         test(new FFDXspeedItPacker());
         test(new OptimizedTreeXspeedItPacker());
         // The TreeXspeedItSorter is really slow, modify the test to use small entry value in order to test it.
-        // test(new TreeXspeedItSorter());
+        // test(new TreeXspeedItPacker());
     }
 
     public static void test(XspeedItPacker sorter) {

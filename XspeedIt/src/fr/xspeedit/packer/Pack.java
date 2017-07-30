@@ -1,13 +1,16 @@
 package fr.xspeedit.packer;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * REpresent a single packet.
  */
 class Pack implements Cloneable {
-    /** String builder used to store the items and create the string representation of the packet. */
-    private final StringBuilder builder      = new StringBuilder();
+    /** list used to store the items. */
+    private final List<Integer> items      = new ArrayList<>();
 
-    /** Current value of the packet. Must be equal to the sum of all the items in {@link #builder}. */
+    /** Current value of the packet. Must be equal to the sum of all the items in {@link #items}. */
     private int                 currentValue = 0;
 
     /**
@@ -30,7 +33,14 @@ class Pack implements Cloneable {
      */
     public void add(int value) {
         currentValue += value;
-        builder.append(value);
+        // The values are sorted to simplify the equals used by some algorithms.
+        for (int i = 0; i < items.size(); i++) {
+            if (items.get(i) <= value) {
+                items.add(i, value);
+                return;
+            }
+        }
+        items.add(value);
     }
 
     /**
@@ -42,6 +52,8 @@ class Pack implements Cloneable {
 
     @Override
     public String toString() {
+        StringBuilder builder = new StringBuilder();
+        items.forEach(i -> builder.append(i));
         return builder.toString();
     }
 
@@ -58,7 +70,14 @@ class Pack implements Cloneable {
     public Pack clonePack() {
         Pack clone = new Pack();
         clone.currentValue = currentValue;
-        clone.builder.append(builder.toString());
+        clone.items.addAll(items);
         return clone;
+    }
+    
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null || !(obj instanceof Pack)) return false;
+        Pack other = (Pack) obj;
+        return items.equals(other.items);
     }
 }

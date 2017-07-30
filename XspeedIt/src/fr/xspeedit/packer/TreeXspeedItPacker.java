@@ -51,7 +51,8 @@ import java.util.PriorityQueue;
  * </pre>
  * 
  * The actual tree is not stored as a tree but as a collection of all non expanded node (called state in the algorithm).
- * In the previous example there is no need to store the node '82' when the node '82/4' have been computed.
+ * In the previous example there is no need to store the node '82' when the node '82/4' have been computed. Also there
+ * is no need to compute nodes that are equivalent to already computed nodes (called closed node).
  */
 public class TreeXspeedItPacker implements XspeedItPacker {
 
@@ -140,6 +141,14 @@ public class TreeXspeedItPacker implements XspeedItPacker {
             }
             return clones;
         }
+        
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == null || !(obj instanceof State)) return false;
+            State other = (State) obj;
+            if (unpackedValuesCount != other.unpackedValuesCount) return false;
+            return super.equals(obj);
+        }
     }
 
     @Override
@@ -151,12 +160,15 @@ public class TreeXspeedItPacker implements XspeedItPacker {
         // The order is needed to limit the size of the queue. smaller queue == less memory manipulation -> massive
         // increase in speed !
         PriorityQueue<State> queue = new PriorityQueue<>((s1, s2) -> s2.size() - s1.size());
+        // List of state that have already been treated, if if state is similar to one in this list it can be skipped safely.
+        List<State> closedStates = new ArrayList<>();
         queue.add(defaultState);
         State bestState = null;
         int bestCost = Integer.MAX_VALUE;
         while (!queue.isEmpty()) {
             final State state = queue.poll();
             List<State> subStates = state.createSubState();
+            closedStates.add(state);
             for (State sub : subStates) {
                 if (sub.isFinal()) {
                     if (sub.size() < bestCost) {
@@ -167,10 +179,9 @@ public class TreeXspeedItPacker implements XspeedItPacker {
                         queue.removeIf(s -> s.size() >= sub.size());
                     }
                 } else {
-                    queue.add(sub);
+                    if (!closedStates.contains(sub)) queue.add(sub);
                 }
             }
-            // }
         }
         return bestState.toString();
     }
